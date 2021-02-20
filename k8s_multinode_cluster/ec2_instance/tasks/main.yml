@@ -1,0 +1,56 @@
+---
+# tasks file for ec2_instance
+  - name: launch an instance with public IP address.
+    ec2_instance:
+       name: "MasterNode"
+       region: "ap-south-1"
+       image_id: "ami-08e0ca9924195beba"
+       instance_type: "t2.micro"
+       vpc_subnet_id: "subnet-e48b9f8c"
+       security_group: "sg-094ce011a83533922"
+       key_name: "mykey25"
+       state: present
+       aws_access_key: "{{ aws_access_key }}"
+       aws_secret_key: "{{ aws_secret_key }}"
+    register: x
+
+  - name: launching 2nd instance with public IP address
+    ec2_instance:
+       name: "WorkerNode1"
+       region: "ap-south-1"
+       image_id: "ami-08e0ca9924195beba"
+       instance_type: "t2.micro"
+       vpc_subnet_id: "subnet-e48b9f8c"
+       security_group: "sg-094ce011a83533922"
+       key_name: "mykey25"
+       state: present
+       aws_access_key: "{{ aws_access_key }}"
+       aws_secret_key: "{{ aws_secret_key }}"
+    register: y
+
+  - name: launching 3rd instance with public IP address
+    ec2_instance:
+       name: "WorkerNode2"
+       region: "ap-south-1"
+       image_id: "ami-08e0ca9924195beba"
+       instance_type: "t2.micro"
+       vpc_subnet_id: "subnet-e48b9f8c"
+       security_group: "sg-094ce011a83533922"
+       key_name: "mykey25"
+       state: present
+       aws_access_key: "{{ aws_access_key }}"
+       aws_secret_key: "{{ aws_secret_key }}"
+    register: z
+
+
+  - name: Dynamically adding instance ip into inventory.
+    blockinfile:
+        path: /root/k8s_multinode_cluster/inventory.txt
+        create: yes
+        block: |
+               [MasterNode] 
+               {{ x.instances[0].public_ip_address }}  ansible_ssh_user=ec2-user  ansible_ssh_private_key_file=/root/mykey25.pem ansible_become=yes
+               [WorkerNode]
+               {{ y.instances[0].public_ip_address }}  ansible_ssh_user=ec2-user  ansible_ssh_private_key_file=/root/mykey25.pem ansible_become=yes
+               {{ z.instances[0].public_ip_address }}  ansible_ssh_user=ec2-user  ansible_ssh_private_key_file=/root/mykey25.pem ansible_become=yes
+
